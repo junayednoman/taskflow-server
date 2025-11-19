@@ -36,4 +36,15 @@ const deleteTask = handleAsyncRequest(async (req: TRequest, res) => {
   sendResponse(res, { message: "Task deleted successfully!", data: task });
 });
 
-export const TaskController = { createTask, getTasks, editTask, deleteTask };
+const reAssignTask = handleAsyncRequest(async (req: TRequest, res) => {
+  const task = await TaskServices.reAssignTask(req.user!.id);
+  sendResponse(res, { message: "Task reassigned successfully!", data: task });
+});
+
+export const TaskController = {
+  createTask,
+  getTasks,
+  editTask,
+  deleteTask,
+  reAssignTask,
+};

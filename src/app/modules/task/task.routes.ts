@@ -13,6 +13,7 @@ router.post(
   TaskController.createTask
 );
 router.get("/", authorize(), TaskController.getTasks);
+router.patch("/reassign", authorize(), TaskController.reAssignTask);
 router.patch(
   "/:id",
   authorize(),

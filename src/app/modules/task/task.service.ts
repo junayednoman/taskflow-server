@@ -95,9 +95,72 @@ const deleteTask = async (taskId: string, userId: string) => {
   return await prisma.task.delete({ where: { id: taskId } });
 };
 
+const reAssignTask = async (userId: string) => {
+  const members = await prisma.member.findMany({
+    where: {
+      team: {
+        userId,
+      },
+    },
+    include: {
+      tasks: true,
+    },
+  });
+
+  if (members.length === 0) {
+    throw new ApiError(404, "No members found!");
+  }
+
+  const overloadedMembers = members.filter(m => m.tasks.length > m.capacity);
+
+  const freeMembers = members.filter(m => m.tasks.length < m.capacity);
+
+  if (overloadedMembers.length === 0) {
+    throw new ApiError(404, "No overloaded members found!");
+  }
+
+  for (const member of overloadedMembers) {
+    const totalOverload = member.tasks.length - member.capacity;
+
+    const movableTasks = member.tasks.filter(t => t.priority !== "HIGH");
+
+    if (movableTasks.length === 0) continue;
+
+    const tasksToMove = movableTasks.slice(0, totalOverload);
+
+    for (const task of tasksToMove) {
+      const target = freeMembers.find(m => m.tasks.length < m.capacity);
+
+      if (!target) break;
+
+      await prisma.$transaction(async tn => {
+        await tn.task.update({
+          where: { id: task.id },
+          data: { assignedMemberId: target.id },
+        });
+
+        await tn.log.create({
+          data: {
+            userId,
+            taskId: task.id,
+            fromMemberId: member.id,
+            toMemberId: target.id,
+            action: "REASSIGN",
+            description: `Task "${task.title}" moved from ${member.name} → ${target.name}`,
+          },
+        });
+      });
+
+      member.tasks = member.tasks.filter(t => t.id !== task.id);
+      target.tasks.push(task);
+    }
+  }
+};
+
 export const TaskServices = {
   createTask,
   getTasks,
   editTask,
   deleteTask,
+  reAssignTask,
 };

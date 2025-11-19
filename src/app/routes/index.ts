@@ -4,6 +4,8 @@ import { teamRoutes } from "../modules/team/team.routes";
 import { memberRoutes } from "../modules/member/member.routes";
 import { projectRoutes } from "../modules/project/project.routes";
 import { taskRoutes } from "../modules/task/task.routes";
+import { dashboardRoutes } from "../modules/dashboard/dashboard.routes";
+import { logRoutes } from "../modules/log/log.routes";
 
 const router = Router();
 
@@ -13,6 +15,8 @@ const routes = [
   { path: "/members", route: memberRoutes },
   { path: "/projects", route: projectRoutes },
   { path: "/tasks", route: taskRoutes },
+  { path: "/dashboard", route: dashboardRoutes },
+  { path: "/logs", route: logRoutes },
 ];
 
 routes.forEach(route => {
