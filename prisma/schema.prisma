@@ -6,3 +6,108 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  teams     Team[]
+  projects  Project[]
+  tasks     Task[]
+  logs      Log[]
+
+  @@map("users")
+}
+
+model Team {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  members   Member[]
+  projects  Project[]
+
+  @@map("teams")
+}
+
+model Member {
+  id               String   @id @default(uuid())
+  teamId           String
+  team             Team     @relation(fields: [teamId], references: [id])
+  name             String
+  role             String
+  capacity         Int
+  createdAt        DateTime @default(now())
+  tasks            Task[]
+  movedTasksFromMe Log[]    @relation("fromMember")
+  movedTasksToMe   Log[]    @relation("toMember")
+
+  @@map("members")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]
+
+  @@map("projects")
+}
+
+model Task {
+  id               String       @id @default(uuid())
+  authorId         String
+  author           User         @relation(fields: [authorId], references: [id])
+  projectId        String
+  project          Project      @relation(fields: [projectId], references: [id])
+  assignedMemberId String
+  assignedMember   Member       @relation(fields: [assignedMemberId], references: [id])
+  title            String
+  description      String
+  priority         TaskPriority
+  status           TaskStatus   @default(PENDING)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  logs             Log[]
+
+  @@map("tasks")
+}
+
+model Log {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id])
+  fromMemberId String
+  fromMember   Member   @relation(name: "fromMember", fields: [fromMemberId], references: [id])
+  toMemberId   String
+  toMember     Member   @relation(name: "toMember", fields: [toMemberId], references: [id])
+  action       String
+  description  String
+  dateTime     DateTime @default(now())
+
+  @@map("logs")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+}
