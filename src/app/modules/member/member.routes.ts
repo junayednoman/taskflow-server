@@ -14,5 +14,11 @@ router.post(
 );
 
 router.get("/", authorize(), MemberController.getMembers);
+router.post("/:memberId/capacity", authorize(), MemberController.checkCapacity);
+router.post(
+  "/:projectId/least-loaded",
+  authorize(),
+  MemberController.getLeastLoadedMember
+);
 
 export const memberRoutes = router;

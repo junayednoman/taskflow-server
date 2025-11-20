@@ -1,8 +1,4 @@
 import ApiError from "../../classes/ApiError";
-import {
-  calculatePagination,
-  TPaginationOptions,
-} from "../../utils/paginationCalculation";
 import prisma from "../../utils/prisma";
 import { TCreateTeam } from "./team.validation";
 
@@ -18,9 +14,7 @@ const createTeam = async (userId: string, payload: TCreateTeam) => {
   return result;
 };
 
-const getTeams = async (userId: string, options: TPaginationOptions) => {
-  const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
-
+const getTeams = async (userId: string) => {
   const teams = await prisma.team.findMany({
     where: { userId },
     select: {
@@ -48,9 +42,8 @@ const getTeams = async (userId: string, options: TPaginationOptions) => {
         },
       },
     },
-    skip,
-    take,
-    orderBy: sortBy && orderBy ? { [sortBy]: orderBy } : { createdAt: "desc" },
+
+    orderBy: { createdAt: "desc" },
   });
 
   const teamsWithAggregates = teams.map(team => {
@@ -71,13 +64,33 @@ const getTeams = async (userId: string, options: TPaginationOptions) => {
     };
   });
 
-  const total = await prisma.team.count({ where: { userId } });
+  return teamsWithAggregates;
+};
 
-  const meta = { page, limit: take, total };
-  return { meta, teams: teamsWithAggregates };
+const updateTeam = async (
+  userId: string,
+  teamId: string,
+  payload: Partial<TCreateTeam>
+) => {
+  const team = await prisma.team.findUniqueOrThrow({
+    where: {
+      id: teamId,
+    },
+  });
+
+  if (team.userId !== userId) {
+    throw new ApiError(403, "You do not have permission to update this team.");
+  }
+
+  const result = await prisma.team.update({
+    where: { id: teamId },
+    data: payload,
+  });
+  return result;
 };
 
 export const TeamServices = {
   createTeam,
   getTeams,
+  updateTeam,
 };

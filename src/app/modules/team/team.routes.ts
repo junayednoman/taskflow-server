@@ -15,4 +15,11 @@ router.post(
 
 router.get("/", authorize(), TeamController.getTeams);
 
+router.patch(
+  "/:teamId",
+  authorize(),
+  handleZodValidation(teamZod.partial()),
+  TeamController.updateTeam
+);
+
 export const teamRoutes = router;

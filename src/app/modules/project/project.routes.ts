@@ -14,5 +14,11 @@ router.post(
 );
 
 router.get("/", authorize(), ProjectController.getProjects);
+router.patch(
+  "/:projectId",
+  authorize(),
+  handleZodValidation(projectZod.partial()),
+  ProjectController.updateProject
+);
 
 export const projectRoutes = router;

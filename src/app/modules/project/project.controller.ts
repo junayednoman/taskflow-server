@@ -22,4 +22,16 @@ const getProjects = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-export const ProjectController = { createProject, getProjects };
+const updateProject = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await ProjectServices.updateProject(
+    req.user!.id,
+    req.params.projectId as string,
+    req.body
+  );
+  sendResponse(res, {
+    message: "Project updated successfully!",
+    data: result,
+  });
+});
+
+export const ProjectController = { createProject, getProjects, updateProject };

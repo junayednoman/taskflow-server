@@ -3,16 +3,33 @@ import {
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
 import prisma from "../../utils/prisma";
-
+// Time
+// Task
+// From
+// To
 const getLogs = async (userId: string, options: TPaginationOptions) => {
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
 
   const logs = await prisma.log.findMany({
     where: { userId },
-    include: {
-      task: true,
-      fromMember: true,
-      toMember: true,
+    select: {
+      id: true,
+      task: {
+        select: {
+          title: true,
+        },
+      },
+      fromMember: {
+        select: {
+          name: true,
+        },
+      },
+      toMember: {
+        select: {
+          name: true,
+        },
+      },
+      dateTime: true,
     },
     skip,
     take,

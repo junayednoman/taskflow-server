@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import ApiError from "../../classes/ApiError";
 import {
   calculatePagination,
@@ -35,19 +36,27 @@ const getMembers = async (
   options: TPaginationOptions,
   userId: string
 ) => {
-  if (!query.team) throw new ApiError(400, "Team id is required!");
-  const team = await prisma.team.findUniqueOrThrow({
-    where: { id: query.team },
-    select: {
-      userId: true,
-    },
-  });
+  const whereConditions: Prisma.MemberWhereInput = {};
 
-  if (team.userId !== userId)
-    throw new ApiError(
-      403,
-      "You are not authorized to view members of this team!"
-    );
+  if (query.team) {
+    const team = await prisma.team.findUniqueOrThrow({
+      where: { id: query.team },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (team.userId !== userId)
+      throw new ApiError(
+        403,
+        "You are not authorized to view members of this team!"
+      );
+    whereConditions.teamId = query.team;
+  } else {
+    whereConditions.team = {
+      userId,
+    };
+  }
 
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
   const members = await prisma.member.findMany({
@@ -71,13 +80,54 @@ const getMembers = async (
   });
 
   const total = await prisma.member.count({
-    where: {
-      teamId: query.team,
-    },
+    where: whereConditions,
   });
 
   const meta = { page, limit: take, total };
   return { meta, members };
 };
 
-export const MemberServices = { addMember, getMembers };
+const checkCapacity = async (memberId: string) => {
+  const member = await prisma.member.findUniqueOrThrow({
+    where: { id: memberId },
+    select: { capacity: true, _count: { select: { tasks: true } } },
+  });
+  if (member.capacity <= member._count.tasks) {
+    throw new ApiError(400, "Insufficient capacity!");
+  }
+};
+
+const getLeastLoadedMember = async (projectId: string) => {
+  console.log("projectId, ", projectId);
+  const project = await prisma.project.findFirstOrThrow({
+    where: { id: projectId },
+    select: { teamId: true },
+  });
+  const teamId = project.teamId;
+  const member = await prisma.member.findFirst({
+    where: {
+      teamId,
+    },
+    orderBy: {
+      tasks: {
+        _count: "asc",
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+  if (member) {
+    return { member };
+  } else {
+    throw new ApiError(404, "No members found!");
+  }
+};
+
+export const MemberServices = {
+  addMember,
+  getMembers,
+  checkCapacity,
+  getLeastLoadedMember,
+};

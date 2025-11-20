@@ -15,7 +15,7 @@ const createTask = handleAsyncRequest(async (req: TRequest, res) => {
 
 const getTasks = handleAsyncRequest(async (req: TRequest, res) => {
   const options = pick(req.query, ["page", "limit", "sortBy", "orderBy"]);
-  const tasks = await TaskServices.getTasks(req.user!.id, options);
+  const tasks = await TaskServices.getTasks(req.user!.id, options, req.query);
   sendResponse(res, { message: "Tasks retrieved successfully!", data: tasks });
 });
 

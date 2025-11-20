@@ -49,7 +49,26 @@ const getProjects = async (userId: string, options: TPaginationOptions) => {
   return { meta, projects };
 };
 
+const updateProject = async (
+  userId: string,
+  projectId: string,
+  payload: Partial<TCreateProject>
+) => {
+  const project = await prisma.project.findUniqueOrThrow({
+    where: { id: projectId },
+  });
+
+  if (project.userId !== userId) throw new ApiError(403, "Not authorized");
+
+  const result = await prisma.project.update({
+    where: { id: projectId },
+    data: payload,
+  });
+  return result;
+};
+
 export const ProjectServices = {
   createProject,
   getProjects,
+  updateProject,
 };

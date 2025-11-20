@@ -24,7 +24,7 @@ const login = async (payload: TLogin) => {
   });
 
   const isValid = await bcrypt.compare(payload.password, user.password);
-  if (!isValid) throw new ApiError(401, "Invalid credentials!");
+  if (!isValid) throw new ApiError(400, "Invalid credentials!");
 
   const accessToken = jwt.sign(
     { id: user.id },

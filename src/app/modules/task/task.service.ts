@@ -5,6 +5,7 @@ import {
   calculatePagination,
   TPaginationOptions,
 } from "../../utils/paginationCalculation";
+import { Prisma } from "@prisma/client";
 
 const createTask = async (authorId: string, payload: TCreateTask) => {
   await prisma.project.findUniqueOrThrow({ where: { id: payload.projectId } });
@@ -20,11 +21,29 @@ const createTask = async (authorId: string, payload: TCreateTask) => {
   return task;
 };
 
-const getTasks = async (userId: string, options: TPaginationOptions) => {
+const getTasks = async (
+  userId: string,
+  options: TPaginationOptions,
+  query: Record<string, any>
+) => {
+  const { project, member } = query;
+  const andConditions: Prisma.TaskWhereInput[] = [];
+
+  andConditions.push({ authorId: userId });
+
+  if (project) {
+    andConditions.push({ projectId: project });
+  }
+  if (member) {
+    andConditions.push({ assignedMemberId: member });
+  }
+
+  const whereConditions: Prisma.TaskWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
   const { page, take, skip, sortBy, orderBy } = calculatePagination(options);
 
   const tasks = await prisma.task.findMany({
-    where: { authorId: userId },
+    where: whereConditions,
     select: {
       id: true,
       title: true,
@@ -104,6 +123,11 @@ const reAssignTask = async (userId: string) => {
     },
     include: {
       tasks: true,
+    },
+    orderBy: {
+      tasks: {
+        _count: "desc",
+      },
     },
   });
 

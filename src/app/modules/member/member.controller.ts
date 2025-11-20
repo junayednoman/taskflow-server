@@ -26,4 +26,29 @@ const getMembers = handleAsyncRequest(async (req: TRequest, res) => {
   });
 });
 
-export const MemberController = { addMember, getMembers };
+const checkCapacity = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await MemberServices.checkCapacity(
+    req.params.memberId as string
+  );
+  sendResponse(res, {
+    message: "Capable to get assigned!",
+    data: result,
+  });
+});
+
+const getLeastLoadedMember = handleAsyncRequest(async (req: TRequest, res) => {
+  const result = await MemberServices.getLeastLoadedMember(
+    req.params.projectId as string
+  );
+  sendResponse(res, {
+    message: "Member automatically assigned successfully!",
+    data: result,
+  });
+});
+
+export const MemberController = {
+  addMember,
+  getMembers,
+  checkCapacity,
+  getLeastLoadedMember,
+};
