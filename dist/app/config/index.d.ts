@@ -5,6 +5,7 @@ declare const _default: {
         accessSecret: string | undefined;
         accessExpiration: string | undefined;
     };
+    db_url: string | undefined;
 };
 export default _default;
 //# sourceMappingURL=index.d.ts.map

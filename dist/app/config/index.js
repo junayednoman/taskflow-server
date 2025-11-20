@@ -13,5 +13,6 @@ exports.default = {
         accessSecret: process.env.JWT_ACCESS_SECRET,
         accessExpiration: process.env.JWT_ACCESS_EXPIRATION,
     },
+    db_url: process.env.DATABASE_URL,
 };
 //# sourceMappingURL=index.js.map
