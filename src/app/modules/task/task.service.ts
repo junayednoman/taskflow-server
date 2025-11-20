@@ -85,6 +85,7 @@ const editTask = async (
   userId: string,
   payload: Partial<TCreateTask>
 ) => {
+  console.log("payload, ", payload);
   if (payload.projectId) {
     await prisma.project.findUniqueOrThrow({
       where: { id: payload.projectId },

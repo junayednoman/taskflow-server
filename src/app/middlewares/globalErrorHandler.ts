@@ -35,7 +35,7 @@ const globalErrorHandler = (
       error = { message, path: field, code: "missing_field" };
     } else if (unknownMatch) {
       const field = unknownMatch[1];
-      message = `Field '${field}' does not exist on this model!`;
+      message = `Field '${field}' does not exist!`;
       error = { message, path: field, code: "unknown_field" };
     } else if (invalidMatch) {
       const field = invalidMatch[1];
